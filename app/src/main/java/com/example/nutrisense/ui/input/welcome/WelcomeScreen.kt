@@ -1,4 +1,4 @@
-package com.example.nutrisense.ui
+package com.example.nutrisense.ui.input.welcome
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*

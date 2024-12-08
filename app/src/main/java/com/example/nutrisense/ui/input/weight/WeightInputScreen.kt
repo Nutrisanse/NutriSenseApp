@@ -1,4 +1,4 @@
-package com.example.nutrisense.ui.input
+package com.example.nutrisense.ui.input.weight
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -20,10 +20,14 @@ import com.example.nutrisense.R
 import com.example.nutrisense.ui.theme.NutriSenseTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
-fun WeightInputScreen(onWeightSubmitted: (String) -> Unit) {
-    // State for input weight
-    val weightState = remember { mutableStateOf(TextFieldValue()) }
+fun WeightInputScreen(
+    onWeightSubmitted: (String) -> Unit,
+    viewModel: WeightInputViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+) {
+    // Observe weight state dari ViewModel
+    val weight by viewModel.weight.collectAsState()
 
     // Load Lottie animation
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.weight))
@@ -83,12 +87,9 @@ fun WeightInputScreen(onWeightSubmitted: (String) -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
-                    value = weightState.value,
+                    value = weight,
                     onValueChange = { newValue ->
-                        // Only allow numeric input
-                        if (newValue.text.all { it.isDigit() }) {
-                            weightState.value = newValue
-                        }
+                        viewModel.updateWeight(newValue) // Update berat badan melalui ViewModel
                     },
                     singleLine = true,
                     label = { Text("Enter your weight") },
@@ -103,7 +104,6 @@ fun WeightInputScreen(onWeightSubmitted: (String) -> Unit) {
                         unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 )
-
 
                 Text(
                     text = "Kg",
@@ -122,7 +122,7 @@ fun WeightInputScreen(onWeightSubmitted: (String) -> Unit) {
             // Next Button
             Button(
                 onClick = {
-                    onWeightSubmitted(weightState.value.text)
+                    onWeightSubmitted(weight) // Kirim berat badan ke callback
                 },
                 modifier = Modifier
                     .fillMaxWidth()

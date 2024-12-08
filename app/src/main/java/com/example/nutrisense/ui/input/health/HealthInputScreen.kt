@@ -1,4 +1,4 @@
-package com.example.nutrisense.ui.input
+package com.example.nutrisense.ui.input.health
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -16,29 +16,33 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.airbnb.lottie.compose.*
 import com.example.nutrisense.R
+import com.example.nutrisense.ui.input.HealthInputViewModel
 import com.example.nutrisense.ui.theme.NutriSenseTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 
 @Composable
-fun HealthInputScreen(onNextClicked: (String) -> Unit) {
-    var bloodPressure by remember { mutableStateOf("") }
-    var cholesterol by remember { mutableStateOf("") }
-    var sugarLevel by remember { mutableStateOf("") }
-    var allergies by remember { mutableStateOf("") }
+fun HealthInputScreen(
+    viewModel: HealthInputViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    onNextClicked: (String) -> Unit
+) {
+    val bloodPressure by viewModel.bloodPressure.collectAsState()
+    val cholesterol by viewModel.cholesterol.collectAsState()
+    val sugarLevel by viewModel.sugarLevel.collectAsState()
+    val allergies by viewModel.allergies.collectAsState()
 
     // Load Lottie animation for health
-    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.health)) // Use health.json file
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.health))
     val progress by animateLottieCompositionAsState(
         composition = composition,
-        iterations = LottieConstants.IterateForever // Loop indefinitely
+        iterations = LottieConstants.IterateForever
     )
 
-    NutriSenseTheme(darkTheme = isSystemInDarkTheme()) { // Use the current system theme
+    NutriSenseTheme(darkTheme = isSystemInDarkTheme()) {
         Scaffold(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background), // Set dynamic background color
+                .background(MaterialTheme.colorScheme.background),
             content = { padding ->
                 Column(
                     modifier = Modifier
@@ -46,7 +50,6 @@ fun HealthInputScreen(onNextClicked: (String) -> Unit) {
                         .padding(padding),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // Column atas: Text, Animasi, dan Input Fields
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -56,22 +59,19 @@ fun HealthInputScreen(onNextClicked: (String) -> Unit) {
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Spacer(modifier = Modifier.height(16.dp))
-                        // Title
                         Text(
                             text = "Enter Your Health Details",
                             textAlign = TextAlign.Center,
                             style = TextStyle(
                                 fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary, // Dynamic primary color
+                                color = MaterialTheme.colorScheme.primary,
                                 letterSpacing = 1.5.sp
                             )
                         )
 
-                        // Lottie Animation
                         Box(
-                            modifier = Modifier
-                                .size(200.dp)
+                            modifier = Modifier.size(200.dp)
                         ) {
                             LottieAnimation(
                                 composition = composition,
@@ -79,10 +79,9 @@ fun HealthInputScreen(onNextClicked: (String) -> Unit) {
                             )
                         }
 
-                        // Input Fields
                         OutlinedTextField(
                             value = bloodPressure,
-                            onValueChange = { bloodPressure = it },
+                            onValueChange = { viewModel.updateBloodPressure(it) },
                             label = { Text("Blood Pressure") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
@@ -96,7 +95,6 @@ fun HealthInputScreen(onNextClicked: (String) -> Unit) {
                                 )
                             },
                             colors = TextFieldDefaults.outlinedTextFieldColors(
-
                                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                                 unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                             )
@@ -104,7 +102,7 @@ fun HealthInputScreen(onNextClicked: (String) -> Unit) {
 
                         OutlinedTextField(
                             value = cholesterol,
-                            onValueChange = { cholesterol = it },
+                            onValueChange = { viewModel.updateCholesterol(it) },
                             label = { Text("Cholesterol") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
@@ -118,7 +116,6 @@ fun HealthInputScreen(onNextClicked: (String) -> Unit) {
                                 )
                             },
                             colors = TextFieldDefaults.outlinedTextFieldColors(
-
                                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                                 unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                             )
@@ -126,7 +123,7 @@ fun HealthInputScreen(onNextClicked: (String) -> Unit) {
 
                         OutlinedTextField(
                             value = sugarLevel,
-                            onValueChange = { sugarLevel = it },
+                            onValueChange = { viewModel.updateSugarLevel(it) },
                             label = { Text("Sugar Level") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
@@ -140,7 +137,6 @@ fun HealthInputScreen(onNextClicked: (String) -> Unit) {
                                 )
                             },
                             colors = TextFieldDefaults.outlinedTextFieldColors(
-
                                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                                 unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                             )
@@ -148,12 +144,11 @@ fun HealthInputScreen(onNextClicked: (String) -> Unit) {
 
                         OutlinedTextField(
                             value = allergies,
-                            onValueChange = { allergies = it },
+                            onValueChange = { viewModel.updateAllergies(it) },
                             label = { Text("Allergies") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
                             colors = TextFieldDefaults.outlinedTextFieldColors(
-
                                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                                 unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                             )
@@ -162,12 +157,11 @@ fun HealthInputScreen(onNextClicked: (String) -> Unit) {
                             text = "You can fill it later if you're not sure about some details.",
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), // Slightly faded text
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             modifier = Modifier.padding(top = 8.dp)
                         )
                     }
 
-                    // Column bawah: Tombol Next dan Footer
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -175,35 +169,29 @@ fun HealthInputScreen(onNextClicked: (String) -> Unit) {
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        // Next Button
                         Button(
-                            onClick = {
-                                val healthData =
-                                    "Blood Pressure: $bloodPressure, Cholesterol: $cholesterol, Sugar Level: $sugarLevel, Allergies: $allergies"
-                                onNextClicked(healthData)
-                            },
+                            onClick = { onNextClicked(viewModel.getHealthData()) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(50.dp),
                             shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary) // Dynamic button color
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                         ) {
                             Text(
                                 text = "Next",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimary // Dynamic text color for button
+                                color = MaterialTheme.colorScheme.onPrimary
                             )
                         }
 
                         Spacer(modifier = Modifier.height(2.dp))
 
-                        // Footer Text
                         Text(
                             text = "By continuing, you agree to NutriSense\nPrivacy Policy and Terms of Use",
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface, // Dynamic text color
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.padding(bottom = 16.dp)
                         )
                     }
@@ -212,6 +200,7 @@ fun HealthInputScreen(onNextClicked: (String) -> Unit) {
         )
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable

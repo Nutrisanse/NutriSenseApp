@@ -1,4 +1,4 @@
-package com.example.nutrisense.ui.input
+package com.example.nutrisense.ui.input.sex
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*

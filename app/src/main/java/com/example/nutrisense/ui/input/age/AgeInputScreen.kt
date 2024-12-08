@@ -1,4 +1,4 @@
-package com.example.nutrisense.ui.input
+package com.example.nutrisense.ui.input.age
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -20,26 +20,30 @@ import com.example.nutrisense.R
 import com.example.nutrisense.ui.theme.NutriSenseTheme
 
 @Composable
-fun AgeInputScreen(onNextClicked: (Int) -> Unit) {
-    // State for selected age, initialized to 25
-    var selectedAge by remember { mutableStateOf(25) }
+fun AgeInputScreen(
+    viewModel: AgeInputViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    onNextClicked: (Int) -> Unit
+) {
+    val selectedAge by viewModel.selectedAge.collectAsState() // Observe age state
 
     // Load Lottie animation
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.calendar))
     val progress by animateLottieCompositionAsState(
         composition = composition,
-        iterations = LottieConstants.IterateForever // Loop indefinitely
+        iterations = LottieConstants.IterateForever
     )
+
+    val numberList = (10..100).toList()
+    val listState = rememberLazyListState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background) // Use theme background
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp),
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Top Section (Title, Animation, Picker, and "Why we ask")
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -55,16 +59,17 @@ fun AgeInputScreen(onNextClicked: (Int) -> Unit) {
                 style = TextStyle(
                     fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary, // Use primary color
+                    color = MaterialTheme.colorScheme.primary,
                     letterSpacing = 1.5.sp
                 ),
                 modifier = Modifier.padding(top = 16.dp)
             )
+
             Spacer(modifier = Modifier.height(16.dp))
-            // Enlarged Lottie Animation
+
+            // Animation
             Box(
-                modifier = Modifier
-                    .size(180.dp) // Increased size of animation
+                modifier = Modifier.size(180.dp)
             ) {
                 LottieAnimation(
                     composition = composition,
@@ -75,12 +80,9 @@ fun AgeInputScreen(onNextClicked: (Int) -> Unit) {
             Spacer(modifier = Modifier.height(32.dp))
 
             // Rolling Picker
-            val numberList = (10..100).toList()
-            val listState = rememberLazyListState()
-
             Box(
                 modifier = Modifier
-                    .height(150.dp) // Restrict height to show only 3 items
+                    .height(150.dp)
                     .padding(vertical = 8.dp)
             ) {
                 LazyColumn(
@@ -109,12 +111,12 @@ fun AgeInputScreen(onNextClicked: (Int) -> Unit) {
                 }
             }
 
-            // Update selected age based on scrolling
+            // Update selected age when scrolling
             LaunchedEffect(listState.firstVisibleItemIndex, listState.layoutInfo.visibleItemsInfo) {
                 val visibleItems = listState.layoutInfo.visibleItemsInfo
                 if (visibleItems.size >= 3) {
-                    val centerItem = visibleItems[1] // Middle visible item
-                    selectedAge = numberList[centerItem.index]
+                    val centerItem = visibleItems[1]
+                    viewModel.updateSelectedAge(numberList[centerItem.index])
                 }
             }
 
@@ -141,14 +143,13 @@ fun AgeInputScreen(onNextClicked: (Int) -> Unit) {
             )
         }
 
-        // Bottom Section (Button and Footer)
+        // Bottom Section
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Next Button
             Button(
                 onClick = { onNextClicked(selectedAge) },
                 modifier = Modifier
@@ -167,7 +168,6 @@ fun AgeInputScreen(onNextClicked: (Int) -> Unit) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Footer Text
             Text(
                 text = "By continuing, you agree to NutriSense\nPrivacy Policy and Terms of Use",
                 textAlign = TextAlign.Center,
@@ -178,6 +178,7 @@ fun AgeInputScreen(onNextClicked: (Int) -> Unit) {
         }
     }
 }
+
 
 @Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable

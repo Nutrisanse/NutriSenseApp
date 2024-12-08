@@ -1,4 +1,4 @@
-package com.example.nutrisense.ui.input
+package com.example.nutrisense.ui.input.height
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -15,14 +15,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.airbnb.lottie.compose.*
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.nutrisense.R
+import com.example.nutrisense.ui.input.HeightInputViewModel
 import com.example.nutrisense.ui.theme.NutriSenseTheme
 
 @Composable
-fun HeightInputScreen(onHeightSubmitted: (String) -> Unit) {
-    // State for selected height, initialized to 163 cm
-    var selectedHeight by remember { mutableStateOf(163) }
+fun HeightInputScreen(
+    onHeightSubmitted: (String) -> Unit,
+    viewModel: HeightInputViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+) {
+    // Observe selectedHeight from ViewModel
+    val selectedHeight by viewModel.selectedHeight.collectAsState()
 
     // Load Lottie animation
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.height)) // Use height.json file
@@ -32,18 +40,17 @@ fun HeightInputScreen(onHeightSubmitted: (String) -> Unit) {
     )
 
     val numberList = (100..250).toList()
-    val listState = rememberLazyListState(initialFirstVisibleItemIndex = numberList.indexOf(163))
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = numberList.indexOf(selectedHeight))
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background) // Gunakan warna latar dari tema
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp),
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
-    )
-    {
-        // Top Section (Title, Animation, Picker, and "Why we ask")
+    ) {
+        // Top Section
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -81,7 +88,7 @@ fun HeightInputScreen(onHeightSubmitted: (String) -> Unit) {
             LazyColumn(
                 state = listState,
                 modifier = Modifier
-                    .height(150.dp) // Enough to show 3 items
+                    .height(150.dp)
                     .padding(vertical = 16.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -110,10 +117,9 @@ fun HeightInputScreen(onHeightSubmitted: (String) -> Unit) {
             LaunchedEffect(listState.firstVisibleItemIndex, listState.layoutInfo.visibleItemsInfo) {
                 val visibleItems = listState.layoutInfo.visibleItemsInfo
                 if (visibleItems.isNotEmpty()) {
-                    // Select the middle visible item
                     val middleIndex = visibleItems.size / 2
                     val centerItem = visibleItems[middleIndex]
-                    selectedHeight = numberList[centerItem.index]
+                    viewModel.updateHeight(numberList[centerItem.index])
                 }
             }
 
@@ -139,7 +145,7 @@ fun HeightInputScreen(onHeightSubmitted: (String) -> Unit) {
             )
         }
 
-        // Bottom Section (Button and Footer)
+        // Bottom Section
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -177,6 +183,7 @@ fun HeightInputScreen(onHeightSubmitted: (String) -> Unit) {
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
