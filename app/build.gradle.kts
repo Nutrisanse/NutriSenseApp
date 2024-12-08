@@ -71,5 +71,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.lottie.compose)
     implementation("androidx.constraintlayout:constraintlayout-compose:1.1.0")
+    implementation(libs.coil.compose)
 
 }
