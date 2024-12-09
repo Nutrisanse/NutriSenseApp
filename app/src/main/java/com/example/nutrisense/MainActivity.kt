@@ -8,7 +8,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.example.nutrisense.navigation.NutriSenseApp
 import com.example.nutrisense.ui.theme.NutriSenseTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -16,22 +18,30 @@ class MainActivity : ComponentActivity() {
             NutriSenseTheme {
                 NutriSenseApp(
                     onCameraLaunch = {
-                        try {
-                            val intent = Intent("android.media.action.IMAGE_CAPTURE")
-                            startActivity(intent)
-                        } catch (e: ActivityNotFoundException) {
-                            Toast.makeText(
-                                this,
-                                "Camera not supported on this device.",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
+                        launchCamera()
                     },
                     showToast = { message ->
-                        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                        showToast(message)
                     }
                 )
             }
         }
+    }
+
+    private fun launchCamera() {
+        try {
+            val intent = Intent("android.media.action.IMAGE_CAPTURE")
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivity(intent)
+            } else {
+                showToast("Camera app not found.")
+            }
+        } catch (e: ActivityNotFoundException) {
+            showToast("Camera not supported on this device.")
+        }
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }

@@ -12,17 +12,23 @@ import com.example.nutrisense.ui.input.height.HeightInputScreen
 import com.example.nutrisense.ui.input.sex.SexSelectionScreen
 import com.example.nutrisense.ui.input.weight.WeightInputScreen
 import com.example.nutrisense.ui.profile.ProfileScreen
+import com.example.nutrisense.ui.login.LoginRoute
 
 @Composable
 fun NutriSenseApp(onCameraLaunch: () -> Unit, showToast: (String) -> Unit) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "welcome") {
+    NavHost(navController = navController, startDestination = "welcome") { // Start dari "welcome"
         composable("welcome") {
             WelcomeScreen(
                 onContinueClick = {
-                    navController.navigate("sex_selection")
+                    navController.navigate("login") // Navigasi ke "login"
                 }
+            )
+        }
+        composable("login") {
+            LoginRoute(
+                navController = navController
             )
         }
         composable("sex_selection") {

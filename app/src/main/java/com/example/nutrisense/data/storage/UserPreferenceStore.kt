@@ -4,8 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -18,6 +17,7 @@ class UserPreferenceStore @Inject constructor(
         private val USER_NAME_KEY = stringPreferencesKey("user_name")
     }
 
+    // Menyimpan token dan username
     suspend fun saveAccessToken(token: String, userName: String) {
         dataStore.edit { preferences ->
             preferences[ACCESS_TOKEN_KEY] = token
@@ -25,17 +25,23 @@ class UserPreferenceStore @Inject constructor(
         }
     }
 
-    val accessToken: Flow<String?> = dataStore.data.map { preferences ->
-        preferences[ACCESS_TOKEN_KEY]
+    // Mendapatkan token yang disimpan (langsung, bukan Flow)
+    suspend fun getAccessToken(): String {
+        val preferences = dataStore.data.first()
+        return preferences[ACCESS_TOKEN_KEY] ?: ""
     }
 
-    val userName: Flow<String?> = dataStore.data.map { preferences ->
-        preferences[USER_NAME_KEY]
+    // Mendapatkan username yang disimpan (langsung, bukan Flow)
+    suspend fun getUserName(): String {
+        val preferences = dataStore.data.first()
+        return preferences[USER_NAME_KEY] ?: ""
     }
 
-    suspend fun clear() {
+    // Menghapus data user (token dan username)
+    suspend fun clearUserData() {
         dataStore.edit { preferences ->
-            preferences.clear()
+            preferences.remove(ACCESS_TOKEN_KEY)
+            preferences.remove(USER_NAME_KEY)
         }
     }
 }
