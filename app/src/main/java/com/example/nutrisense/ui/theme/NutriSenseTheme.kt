@@ -39,7 +39,7 @@ fun NutriSenseTheme(
 
     MaterialTheme(
         colorScheme = colors,
-        typography = Typography,
+        typography = AppTypography,
         shapes = Shapes,
         content = content
     )
