@@ -18,37 +18,46 @@ fun AppButton(
     enabled: Boolean = true,
     shape: CornerBasedShape = MaterialTheme.shapes.small,
     type: AppButtonType = AppButtonType.Filled,
+    buttonColor: Color = MaterialTheme.colorScheme.primary, // Default warna tombol
+    textColor: Color = MaterialTheme.colorScheme.onPrimary, // Default warna teks
     onClick: () -> Unit
 ) {
     when (type) {
         AppButtonType.Filled -> Button(
             onClick = onClick,
-
             modifier = modifier.fillMaxWidth(),
             enabled = enabled,
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                disabledContentColor = Color.White.copy(alpha = 0.5f),
+                containerColor = buttonColor,
+                contentColor = textColor,
+                disabledContainerColor = buttonColor.copy(alpha = 0.5f),
+                disabledContentColor = textColor.copy(alpha = 0.5f)
             ),
             shape = shape
-
         ) {
-            ButtonContent(text = text)
+            Text(
+                text = text,
+                style = MaterialTheme.typography.titleSmall,
+                color = textColor
+            )
         }
 
         AppButtonType.Outlined -> OutlinedButton(
             onClick = onClick,
             modifier = modifier.fillMaxWidth(),
             enabled = enabled,
-            shape = MaterialTheme.shapes.small,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.onBackground,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-            ),
-
-            ) {
-            ButtonContent(text = text)
+            shape = shape,
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = Color.Transparent,
+                contentColor = buttonColor,
+                disabledContentColor = buttonColor.copy(alpha = 0.5f)
+            )
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.titleSmall,
+                color = textColor
+            )
         }
 
         AppButtonType.Text -> {
@@ -56,20 +65,25 @@ fun AppButton(
                 onClick = onClick,
                 modifier = modifier.fillMaxWidth(),
                 enabled = enabled,
-                shape = MaterialTheme.shapes.small
+                shape = shape
             ) {
-                ButtonContent(text = text)
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = textColor
+                )
             }
         }
     }
 }
 
+
 @Composable
 private fun ButtonContent(text: String) {
     Text(
         text = text,
-        style = MaterialTheme.typography.titleSmall,
-        modifier = Modifier.padding(8.dp),
+        style = MaterialTheme.typography.titleSmall.copy(color = MaterialTheme.colorScheme.onPrimary), // Teks dinamis
+        modifier = Modifier.padding(8.dp)
     )
 }
 

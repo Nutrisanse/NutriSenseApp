@@ -13,6 +13,8 @@ import com.example.nutrisense.ui.input.sex.SexSelectionScreen
 import com.example.nutrisense.ui.input.weight.WeightInputScreen
 import com.example.nutrisense.ui.profile.ProfileScreen
 import com.example.nutrisense.ui.login.LoginRoute
+import com.example.nutrisense.ui.input.register.RegisterRoute
+
 
 @Composable
 fun NutriSenseApp(onCameraLaunch: () -> Unit, showToast: (String) -> Unit) {
@@ -30,6 +32,9 @@ fun NutriSenseApp(onCameraLaunch: () -> Unit, showToast: (String) -> Unit) {
             LoginRoute(
                 navController = navController
             )
+        }
+        composable("register") {
+            RegisterRoute(navController = navController)  // Menambahkan NavController ke RegisterRoute
         }
         composable("sex_selection") {
             SexSelectionScreen(
@@ -82,3 +87,5 @@ fun NutriSenseApp(onCameraLaunch: () -> Unit, showToast: (String) -> Unit) {
         }
     }
 }
+
+

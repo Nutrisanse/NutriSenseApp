@@ -15,6 +15,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InputPassword(
     passwordVisible: Boolean,
@@ -26,18 +27,25 @@ fun InputPassword(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text("Password") },
+        label = { Text("Password", color = MaterialTheme.colorScheme.primary) }, // Label dinamis
         singleLine = true,
         trailingIcon = {
             IconButton(onClick = togglePasswordVisibility) {
                 Icon(
                     imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary // Ikon warna dinamis
                 )
             }
         },
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary, // Border fokus
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline, // Border default
+            cursorColor = MaterialTheme.colorScheme.primary // Warna kursor
+        ),
         modifier = modifier.fillMaxWidth()
     )
 }
+
 

@@ -67,6 +67,8 @@ fun LoginScreen(
     navController: NavController
 ) {
     val context = LocalContext.current
+
+    // Show error messages in Toast
     LaunchedEffect(errorMessages) {
         if (errorMessages != null) {
             Toast.makeText(context, errorMessages, Toast.LENGTH_SHORT).show()
@@ -74,6 +76,7 @@ fun LoginScreen(
         }
     }
 
+    // Show success messages in Toast and navigate
     LaunchedEffect(successMessage) {
         if (successMessage != null) {
             Toast.makeText(context, successMessage, Toast.LENGTH_SHORT).show()
@@ -82,32 +85,47 @@ fun LoginScreen(
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.Center
+    Surface(
+        modifier = modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background // Warna latar belakang sesuai tema
     ) {
-        InputTextField(
-            text = loginUiInfo.email,
-            label = "Email",
-            onValueChange = { onEmailChanged(it) }
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        InputPassword(
-            passwordVisible = passwordVisible,
-            value = loginUiInfo.password,
-            togglePasswordVisibility = onPasswordVisibilityChanged,
-            onValueChange = { onPasswordChanged(it) }
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        AppButton(text = stringResource(R.string.login), enabled = !loading) {
-            login()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Email Input
+            InputTextField(
+                text = loginUiInfo.email,
+                label = "Email",
+                onValueChange = { onEmailChanged(it) }
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Password Input
+            InputPassword(
+                passwordVisible = passwordVisible,
+                value = loginUiInfo.password,
+                togglePasswordVisibility = onPasswordVisibilityChanged,
+                onValueChange = { onPasswordChanged(it) }
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Login Button
+            AppButton(
+                text = stringResource(R.string.login),
+                enabled = !loading
+            ) {
+                login()
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Register Text
+            RegisterText(onRegisterClick = {
+                navController.navigateToRegister()
+            })
         }
-        Spacer(modifier = Modifier.height(10.dp))
-        RegisterText(onRegisterClick = {
-            navController.navigateToRegister()
-        })
     }
 }
 
@@ -132,6 +150,7 @@ fun RegisterText(onRegisterClick: () -> Unit) {
             .padding(vertical = 8.dp)
     )
 }
+
 
 @Preview(showBackground = true)
 @Composable
