@@ -1,4 +1,4 @@
-package com.example.nutrisense.ui.login
+package com.example.nutrisense.ui.input.login
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable

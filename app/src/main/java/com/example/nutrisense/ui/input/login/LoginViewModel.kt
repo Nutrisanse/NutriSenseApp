@@ -1,4 +1,4 @@
-package com.example.nutrisense.ui.login
+package com.example.nutrisense.ui.input.login
 
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.auth0.android.jwt.JWT
 import com.example.nutrisense.data.repositories.UserRepository
 import com.example.nutrisense.data.resource.response.error.LoginError
-
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers

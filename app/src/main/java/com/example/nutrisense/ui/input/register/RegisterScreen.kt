@@ -14,22 +14,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.example.nutrisense.ui.components.AppButton
 import com.example.nutrisense.ui.components.InputTextField
-import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.nutrisense.R
@@ -41,10 +39,13 @@ import com.example.nutrisense.ui.theme.NutriSenseTheme
 internal fun RegisterRoute(
     modifier: Modifier = Modifier,
     viewModel: RegisterViewModel = hiltViewModel(),
-    navController: NavController  // Terima NavController sebagai parameter
+    navController: NavController
 ) {
-    val errorMessages = viewModel.errorMessages.value
-    val registerUiInfo = viewModel.registerUiInfo.collectAsStateWithLifecycle().value
+    val errorMessages by viewModel.errorMessages.collectAsState()
+    val registerUiInfo by viewModel.registerUiInfo.collectAsState()
+    val passwordVisible by viewModel.passwordVisible.collectAsState()
+    val loading by viewModel.loading.collectAsState()
+    val successMessage by viewModel.successMessage.collectAsState()
 
     // Panggil RegisterScreen dengan navController untuk navigasi
     RegisterScreen(
@@ -53,16 +54,17 @@ internal fun RegisterRoute(
         errorMessages = errorMessages,
         register = viewModel::register,
         onPasswordVisibilityChanged = viewModel::onPasswordVisibilityChanged,
-        onNameChanged = viewModel::onNameChanged,
+        onUsernameChanged = viewModel::onUsernameChanged,
         onEmailChanged = viewModel::onEmailChanged,
         onPasswordChanged = viewModel::onPasswordChanged,
-        passwordVisible = viewModel.passwordVisible.value,
-        loading = viewModel.loading.value,
+        passwordVisible = passwordVisible,
+        loading = loading,
         clearErrorMessages = viewModel::clearErrorMessages,
-        successMessage = viewModel.successMessage.value,
-        navController = navController // Menyertakan navController ke RegisterScreen
+        successMessage = successMessage,
+        navController = navController
     )
 }
+
 
 // RegisterScreen adalah UI yang merender form pendaftaran
 @Composable
@@ -72,7 +74,7 @@ fun RegisterScreen(
     errorMessages: String? = null,
     register: () -> Unit = {},
     onPasswordVisibilityChanged: () -> Unit = {},
-    onNameChanged: (String) -> Unit = {},
+    onUsernameChanged: (String) -> Unit = {},
     onEmailChanged: (String) -> Unit = {},
     onPasswordChanged: (String) -> Unit = {},
     passwordVisible: Boolean = false,
@@ -85,19 +87,23 @@ fun RegisterScreen(
 
     // Toast untuk pesan error
     LaunchedEffect(errorMessages) {
+        Log.d("RegisterScreen", "Error Message Triggered: $errorMessages") // Debugging
         if (errorMessages != null) {
             Toast.makeText(context, errorMessages, Toast.LENGTH_SHORT).show()
+            kotlinx.coroutines.delay(100) // Beri waktu sebelum menghapus pesan
             clearErrorMessages()
         }
     }
 
-    // Toast untuk pesan sukses
     LaunchedEffect(successMessage) {
+        Log.d("RegisterScreen", "Success Message Triggered: $successMessage") // Debugging
         if (successMessage != null) {
             Toast.makeText(context, successMessage, Toast.LENGTH_SHORT).show()
+            kotlinx.coroutines.delay(100) // Beri waktu sebelum menghapus pesan
             clearErrorMessages()
         }
     }
+
 
     // Menggunakan Surface untuk memastikan warna latar belakang sesuai tema
     Surface(
@@ -120,9 +126,9 @@ fun RegisterScreen(
 
             // Input Nama
             InputTextField(
-                text = registerUiInfo.name,
-                label = "Nama",
-                onValueChange = { onNameChanged(it) }
+                text = registerUiInfo.username,
+                label = "Username",
+                onValueChange = { onUsernameChanged(it) }
             )
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -140,6 +146,7 @@ fun RegisterScreen(
                 text = stringResource(R.string.register),
                 enabled = loading.not()
             ) {
+                Log.d("RegisterScreen", "Register button clicked") // Debugging
                 register()
             }
 
@@ -185,10 +192,9 @@ fun RegisterScreenPreview() {
             registerUiInfo = RegisterUiInfo(
                 email = "",
                 password = "",
-                name = ""
+                username = ""
             ),
             navController = navController  // Mengirimkan NavController ke RegisterScreen
         )
     }
 }
-

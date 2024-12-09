@@ -13,13 +13,11 @@ class UserRepository @Inject constructor(
 ) {
 
     // Fungsi untuk melakukan registrasi user
-    suspend fun registerUser(name: String, email: String, password: String): RegisterResponse {
-        // Membuat request untuk registrasi
-        val request = RegisterRequest(email, name, password)
-
-        // Melakukan request ke API
+    suspend fun registerUser( email: String, password: String, username: String): RegisterResponse {
+        val request = RegisterRequest(email = email, password = password,username = username)
         return apiService.register(request)
     }
+
 
     // Fungsi untuk melakukan login user
     suspend fun loginUser(email: String, password: String): LoginResponse {

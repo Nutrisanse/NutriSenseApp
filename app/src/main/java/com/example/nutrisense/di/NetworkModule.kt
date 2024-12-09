@@ -20,7 +20,7 @@ object NetworkModule {
     fun provideRetrofit(): Retrofit {
         val gson: Gson = GsonBuilder().setLenient().create()
         return Retrofit.Builder()
-            .baseUrl("https://backend-service-1057600249204.us-central1.run.app")
+            .baseUrl("https://backend-service-1057600249204.us-central1.run.app/")
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
     }

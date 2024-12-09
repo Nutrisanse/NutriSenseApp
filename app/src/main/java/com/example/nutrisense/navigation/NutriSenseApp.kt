@@ -12,7 +12,7 @@ import com.example.nutrisense.ui.input.height.HeightInputScreen
 import com.example.nutrisense.ui.input.sex.SexSelectionScreen
 import com.example.nutrisense.ui.input.weight.WeightInputScreen
 import com.example.nutrisense.ui.profile.ProfileScreen
-import com.example.nutrisense.ui.login.LoginRoute
+import com.example.nutrisense.ui.input.login.LoginRoute
 import com.example.nutrisense.ui.input.register.RegisterRoute
 
 
