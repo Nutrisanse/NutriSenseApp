@@ -1,5 +1,6 @@
 package com.example.nutrisense.ui.input.login
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -69,19 +70,20 @@ fun LoginScreen(
     val context = LocalContext.current
 
     // Show error messages in Toast
-    LaunchedEffect(errorMessages) {
-        if (errorMessages != null) {
-            Toast.makeText(context, errorMessages, Toast.LENGTH_SHORT).show()
+    LaunchedEffect(successMessage) {
+        if (successMessage != null) {
+            Log.d("LoginScreen", "Login berhasil: $successMessage")
+            Toast.makeText(context, successMessage, Toast.LENGTH_SHORT).show()
             clearErrorMessages()
+            navController.navigate("sex_selection") // Navigate to sex_selection after login success
         }
     }
 
-    // Show success messages in Toast and navigate
-    LaunchedEffect(successMessage) {
-        if (successMessage != null) {
-            Toast.makeText(context, successMessage, Toast.LENGTH_SHORT).show()
+    LaunchedEffect(errorMessages) {
+        if (errorMessages != null) {
+            Log.d("LoginScreen", "Error: $errorMessages")
+            Toast.makeText(context, errorMessages, Toast.LENGTH_SHORT).show()
             clearErrorMessages()
-            navController.navigateToHome()
         }
     }
 
@@ -123,11 +125,12 @@ fun LoginScreen(
 
             // Register Text
             RegisterText(onRegisterClick = {
-                navController.navigateToRegister()
+                navController.navigate("register") // Navigate to register screen
             })
         }
     }
 }
+
 
 @Composable
 fun RegisterText(onRegisterClick: () -> Unit) {

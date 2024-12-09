@@ -20,21 +20,16 @@ import com.example.nutrisense.ui.input.register.RegisterRoute
 fun NutriSenseApp(onCameraLaunch: () -> Unit, showToast: (String) -> Unit) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "welcome") { // Start dari "welcome"
+    NavHost(navController = navController, startDestination = "welcome") {
         composable("welcome") {
             WelcomeScreen(
                 onContinueClick = {
-                    navController.navigate("login") // Navigasi ke "login"
+                    navController.navigate("login")
                 }
             )
         }
         composable("login") {
-            LoginRoute(
-                navController = navController
-            )
-        }
-        composable("register") {
-            RegisterRoute(navController = navController)  // Menambahkan NavController ke RegisterRoute
+            LoginRoute(navController = navController)
         }
         composable("sex_selection") {
             SexSelectionScreen(
@@ -42,6 +37,9 @@ fun NutriSenseApp(onCameraLaunch: () -> Unit, showToast: (String) -> Unit) {
                     navController.navigate("weight_input")
                 }
             )
+        }
+        composable("register") {
+            RegisterRoute(navController = navController)  // Menambahkan NavController ke RegisterRoute
         }
         composable("weight_input") {
             WeightInputScreen(

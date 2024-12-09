@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import com.auth0.android.jwt.JWT
 import com.example.nutrisense.data.repositories.UserRepository
 import com.example.nutrisense.data.resource.response.error.LoginError
@@ -32,8 +33,8 @@ class LoginViewModel @Inject constructor(
     var passwordVisible = mutableStateOf(false)
     var loading = mutableStateOf(false)
     var successMessage = mutableStateOf<String?>(null)
-    fun login() {
 
+    fun login() {
         viewModelScope.launch {
             loading.value = true
             try {
@@ -41,16 +42,20 @@ class LoginViewModel @Inject constructor(
                     loginUiInfo.value.email,
                     loginUiInfo.value.password
                 )
-                val jwt = JWT(response.accessToken)
-                userRepository.saveAccessToken(
-                    response.accessToken,
-                    jwt.getClaim("name").asString() ?: ""
-                )
+
+                val accessToken = response.accessToken // Memastikan ada access token
+                if (accessToken != null) {
+                    val jwt = JWT(accessToken)
+                    val nameClaim = jwt.getClaim("name").asString()
+                    userRepository.saveAccessToken(accessToken, nameClaim ?: "Unknown")
+                } else {
+                    errorMessages.value = "Access token is null"
+                }
+
                 withContext(Dispatchers.Main) {
                     successMessage.value = "Login Success"
                 }
             } catch (e: HttpException) {
-
                 if (e.code() == 401) {
                     errorMessages.value = "Email atau password salah"
                     return@launch
@@ -59,7 +64,6 @@ class LoginViewModel @Inject constructor(
                 val jsonInString = e.response()?.errorBody()?.string()
                 val errorBody = Gson().fromJson(jsonInString, LoginError::class.java)
                 errorMessages.value = errorBody.detail?.get(0)?.msg
-
             } catch (e: Exception) {
                 errorMessages.value = "An error occurred"
                 Log.d("LoginViewModel", "login: ${e.message}")
@@ -68,6 +72,7 @@ class LoginViewModel @Inject constructor(
             }
         }
     }
+
 
     fun onEmailChanged(email: String) {
         loginUiInfo.value = loginUiInfo.value.copy(email = email)
@@ -81,12 +86,10 @@ class LoginViewModel @Inject constructor(
         passwordVisible.value = !passwordVisible.value
     }
 
-
     fun clearErrorMessages() {
         errorMessages.value = null
         successMessage.value = null
     }
-
 }
 
 data class LoginUiInfo(
