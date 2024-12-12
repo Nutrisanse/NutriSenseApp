@@ -1,5 +1,6 @@
 package com.example.nutrisense.ui.input.login
 
+import android.content.SharedPreferences
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -13,28 +14,29 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.nutrisense.R
 import com.example.nutrisense.ui.components.AppButton
 import com.example.nutrisense.ui.components.InputPassword
 import com.example.nutrisense.ui.components.InputTextField
-import com.example.nutrisense.ui.theme.NutriSenseTheme
 
 
 @Composable
 internal fun LoginRoute(
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
+    sharedPreferences: SharedPreferences, // pass SharedPreferences to track login and first time status
+    onLoginSuccess: () -> Unit // menambahkan parameter onLoginSuccess
 ) {
     val errorMessages = viewModel.errorMessages.value
     val loginUiInfo = viewModel.loginUiInfo.collectAsStateWithLifecycle().value
+
+    // Memanggil LoginScreen dengan parameter onLoginSuccess
     LoginScreen(
         modifier,
         loginUiInfo,
@@ -47,9 +49,12 @@ internal fun LoginRoute(
         viewModel.loading.value,
         viewModel::clearErrorMessages,
         viewModel.successMessage.value,
-        navController = navController
+        navController = navController,
+        sharedPreferences = sharedPreferences,
+        onLoginSuccess = onLoginSuccess // pass onLoginSuccess to LoginScreen
     )
 }
+
 
 @Composable
 fun LoginScreen(
@@ -64,25 +69,24 @@ fun LoginScreen(
     loading: Boolean = false,
     clearErrorMessages: () -> Unit = {},
     successMessage: String? = null,
-    navController: NavController
+    navController: NavController,
+    sharedPreferences: SharedPreferences,
+    onLoginSuccess: () -> Unit // menerima onLoginSuccess
 ) {
     val context = LocalContext.current
 
-    // Show error messages in Toast
+    // Menangani login success dan navigasi
     LaunchedEffect(successMessage) {
         if (successMessage != null) {
             Log.d("LoginScreen", "Login berhasil: $successMessage")
             Toast.makeText(context, successMessage, Toast.LENGTH_SHORT).show()
             clearErrorMessages()
-            navController.navigate("sex_selection") // Navigate to sex_selection after login success
-        }
-    }
 
-    LaunchedEffect(errorMessages) {
-        if (errorMessages != null) {
-            Log.d("LoginScreen", "Error: $errorMessages")
-            Toast.makeText(context, errorMessages, Toast.LENGTH_SHORT).show()
-            clearErrorMessages()
+            // Menyimpan status login
+            sharedPreferences.edit().putBoolean("is_logged_in", true).apply()
+
+
+            onLoginSuccess() // panggil onLoginSuccess setelah login berhasil
         }
     }
 
@@ -154,14 +158,3 @@ fun RegisterText(onRegisterClick: () -> Unit) {
 }
 
 
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    val navController = rememberNavController()
-    NutriSenseTheme {
-        LoginScreen(
-            loginUiInfo = LoginUiInfo(email = "", password = ""),
-            navController = navController
-        )
-    }
-}

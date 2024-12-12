@@ -1,5 +1,6 @@
 package com.example.nutrisense.ui.input.register
 
+import android.content.SharedPreferences
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -39,7 +40,8 @@ import com.example.nutrisense.ui.theme.NutriSenseTheme
 internal fun RegisterRoute(
     modifier: Modifier = Modifier,
     viewModel: RegisterViewModel = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
+    sharedPreferences: SharedPreferences // Pass SharedPreferences for saving the user status
 ) {
     val errorMessages by viewModel.errorMessages.collectAsState()
     val registerUiInfo by viewModel.registerUiInfo.collectAsState()
@@ -47,7 +49,7 @@ internal fun RegisterRoute(
     val loading by viewModel.loading.collectAsState()
     val successMessage by viewModel.successMessage.collectAsState()
 
-    // Panggil RegisterScreen dengan navController untuk navigasi
+    // Call RegisterScreen with navController and sharedPreferences
     RegisterScreen(
         modifier = modifier,
         registerUiInfo = registerUiInfo,
@@ -61,12 +63,11 @@ internal fun RegisterRoute(
         loading = loading,
         clearErrorMessages = viewModel::clearErrorMessages,
         successMessage = successMessage,
-        navController = navController
+        navController = navController,
+        sharedPreferences = sharedPreferences
     )
 }
 
-
-// RegisterScreen adalah UI yang merender form pendaftaran
 @Composable
 fun RegisterScreen(
     modifier: Modifier = Modifier,
@@ -81,34 +82,40 @@ fun RegisterScreen(
     loading: Boolean = false,
     clearErrorMessages: () -> Unit = {},
     successMessage: String? = null,
-    navController: NavController
+    navController: NavController,
+    sharedPreferences: SharedPreferences // Pass SharedPreferences to RegisterScreen
 ) {
     val context = LocalContext.current
 
-    // Toast untuk pesan error
+    // Toast for error message
     LaunchedEffect(errorMessages) {
-        Log.d("RegisterScreen", "Error Message Triggered: $errorMessages") // Debugging
         if (errorMessages != null) {
             Toast.makeText(context, errorMessages, Toast.LENGTH_SHORT).show()
-            kotlinx.coroutines.delay(100) // Beri waktu sebelum menghapus pesan
+            kotlinx.coroutines.delay(100) // Delay before clearing the message
             clearErrorMessages()
         }
     }
 
+    // Toast for success message
     LaunchedEffect(successMessage) {
-        Log.d("RegisterScreen", "Success Message Triggered: $successMessage") // Debugging
         if (successMessage != null) {
             Toast.makeText(context, successMessage, Toast.LENGTH_SHORT).show()
-            kotlinx.coroutines.delay(100) // Beri waktu sebelum menghapus pesan
+            kotlinx.coroutines.delay(100) // Delay before clearing the message
             clearErrorMessages()
+
+            // Save login status and new user
+            sharedPreferences.edit().putBoolean("is_logged_in", true).apply()
+
+            // Navigate to login screen after successful registration
+            navController.navigate("login") {
+                popUpTo("register") { inclusive = true } // Clear the registration screen from stack
+            }
         }
     }
 
-
-    // Menggunakan Surface untuk memastikan warna latar belakang sesuai tema
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background // Warna latar belakang berdasarkan tema
+        color = MaterialTheme.colorScheme.background // Background color based on theme
     ) {
         Column(
             modifier = Modifier
@@ -124,7 +131,7 @@ fun RegisterScreen(
             )
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Input Nama
+            // Input Username
             InputTextField(
                 text = registerUiInfo.username,
                 label = "Username",
@@ -141,22 +148,23 @@ fun RegisterScreen(
             )
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Tombol Register
+            // Register Button
             AppButton(
                 text = stringResource(R.string.register),
                 enabled = loading.not()
             ) {
-                Log.d("RegisterScreen", "Register button clicked") // Debugging
                 register()
             }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Teks Login
-            LoginText(navController = navController) // Pass navController ke LoginText
+            // Login Text
+            LoginText(navController = navController) // Pass navController to LoginText
         }
     }
 }
+
+
 
 @Composable
 fun LoginText(navController: NavController) {
@@ -180,21 +188,4 @@ fun LoginText(navController: NavController) {
         },
         style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onBackground) // Warna teks sesuai tema
     )
-}
-
-// Preview untuk melihat tampilan RegisterScreen di Android Studio
-@Preview(showSystemUi = true)
-@Composable
-fun RegisterScreenPreview() {
-    NutriSenseTheme {
-        val navController = rememberNavController()  // Membuat NavController di dalam preview
-        RegisterScreen(
-            registerUiInfo = RegisterUiInfo(
-                email = "",
-                password = "",
-                username = ""
-            ),
-            navController = navController  // Mengirimkan NavController ke RegisterScreen
-        )
-    }
 }

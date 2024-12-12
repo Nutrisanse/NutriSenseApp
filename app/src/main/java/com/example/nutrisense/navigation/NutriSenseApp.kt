@@ -1,7 +1,9 @@
 package com.example.nutrisense.navigation
 
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -22,7 +24,11 @@ import com.example.nutrisense.ui.input.UserInputViewModel
 fun NutriSenseApp(onCameraLaunch: () -> Unit, showToast: (String) -> Unit) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "welcome") {
+    // SharedPreferences for saving login status and first-time usage status
+    val sharedPreferences = LocalContext.current.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+    val isLoggedIn = sharedPreferences.getBoolean("is_logged_in", false)
+
+    NavHost(navController = navController, startDestination = if (isLoggedIn) "home" else "welcome") {
         composable("welcome") {
             WelcomeScreen(
                 onContinueClick = {
@@ -30,12 +36,28 @@ fun NutriSenseApp(onCameraLaunch: () -> Unit, showToast: (String) -> Unit) {
                 }
             )
         }
+
         composable("login") {
-            LoginRoute(navController = navController)
+            LoginRoute(
+                navController = navController,
+                sharedPreferences = sharedPreferences,
+                onLoginSuccess = {
+                    val isFirstTime = sharedPreferences.getBoolean("is_first_time", true)
+                    if (isFirstTime) {
+                        navController.navigate("sex_selection") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate("home") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                    }
+                }
+            )
         }
+
         composable("sex_selection") {
-            val navBackStackEntry = remember { navController.currentBackStackEntry }
-            val userInputViewModel: UserInputViewModel = hiltViewModel(navBackStackEntry!!)
+            val userInputViewModel: UserInputViewModel = hiltViewModel()
             SexSelectionScreen(
                 viewModel = userInputViewModel,
                 onSexSelected = {
@@ -43,39 +65,43 @@ fun NutriSenseApp(onCameraLaunch: () -> Unit, showToast: (String) -> Unit) {
                 }
             )
         }
+
         composable("register") {
-            RegisterRoute(navController = navController)
+            RegisterRoute(
+                navController = navController,
+                sharedPreferences = sharedPreferences // Pass SharedPreferences
+            )
         }
+
         composable("weight_input") {
-            val navBackStackEntry = remember { navController.currentBackStackEntry }
-            val userInputViewModel: UserInputViewModel = hiltViewModel(navBackStackEntry!!)
+            val userInputViewModel: UserInputViewModel = hiltViewModel()
             WeightInputScreen(
                 userInputViewModel = userInputViewModel,
                 navController = navController
             )
         }
+
         composable("height_input") {
-            val navBackStackEntry = remember { navController.currentBackStackEntry }
-            val userInputViewModel: UserInputViewModel = hiltViewModel(navBackStackEntry!!)
+            val userInputViewModel: UserInputViewModel = hiltViewModel()
             HeightInputScreen(
                 userInputViewModel = userInputViewModel,
                 navController = navController
             )
         }
+
         composable("age_input") {
-            val navBackStackEntry = remember { navController.currentBackStackEntry }
-            val userInputViewModel: UserInputViewModel = hiltViewModel(navBackStackEntry!!)
+            val userInputViewModel: UserInputViewModel = hiltViewModel()
             AgeInputScreen(
                 userInputViewModel = userInputViewModel,
                 navController = navController
             )
         }
+
         composable("health_input") {
-            val navBackStackEntry = remember { navController.currentBackStackEntry }
-            val userInputViewModel: UserInputViewModel = hiltViewModel(navBackStackEntry!!)
+            val userInputViewModel: UserInputViewModel = hiltViewModel()
             HealthInputScreen(
                 navController = navController,
-                userInputViewModel = userInputViewModel,
+                userInputViewModel = userInputViewModel
             )
         }
 
@@ -85,6 +111,7 @@ fun NutriSenseApp(onCameraLaunch: () -> Unit, showToast: (String) -> Unit) {
                 onScanFoodClick = onCameraLaunch
             )
         }
+
         composable("profile") {
             ProfileScreen(
                 onCancelClick = { navController.popBackStack() },
@@ -95,7 +122,4 @@ fun NutriSenseApp(onCameraLaunch: () -> Unit, showToast: (String) -> Unit) {
         }
     }
 }
-
-
-
 

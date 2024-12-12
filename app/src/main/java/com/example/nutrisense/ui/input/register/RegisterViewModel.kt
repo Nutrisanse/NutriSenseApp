@@ -20,7 +20,6 @@ class RegisterViewModel @Inject constructor(
     val passwordVisible = MutableStateFlow(false)
     val loading = MutableStateFlow(false)
     val successMessage = MutableStateFlow<String?>(null)
-    val userInfo = MutableStateFlow<String?>(null)
 
     fun register() {
         if (!isInputValid()) return
