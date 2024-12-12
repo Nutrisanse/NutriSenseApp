@@ -1,5 +1,6 @@
 package com.example.nutrisense.ui.input.weight
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -8,26 +9,26 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.airbnb.lottie.compose.*
 import com.example.nutrisense.R
-import com.example.nutrisense.ui.theme.NutriSenseTheme
+import com.example.nutrisense.ui.input.UserInputViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
-
 @Composable
 fun WeightInputScreen(
-    onWeightSubmitted: (String) -> Unit,
-    viewModel: WeightInputViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    userInputViewModel: UserInputViewModel = viewModel(),
+    navController: NavController
 ) {
-    // Observe weight state dari ViewModel
-    val weight by viewModel.weight.collectAsState()
+    // Mengambil data berat dari ViewModel dan menggunakan collectAsState() untuk mendapatkan nilai terkini
+    val userData by userInputViewModel.userData.collectAsState()
+    val weight = userData.weight?.toString() ?: "0" // Mengambil nilai berat atau default "0"
 
     // Load Lottie animation
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.weight))
@@ -89,7 +90,19 @@ fun WeightInputScreen(
                 OutlinedTextField(
                     value = weight,
                     onValueChange = { newValue ->
-                        viewModel.updateWeight(newValue) // Update berat badan melalui ViewModel
+                        // Only allow valid integer input
+                        if (newValue.all { it.isDigit() }) {
+                            // Update the weight value in ViewModel
+                            userInputViewModel.updateWeight(newValue.toInt(),
+                                onSuccess = {
+                                    Log.d("WeightInputScreen", "Weight successfully updated")
+                                },
+                                onError = { errorMessage ->
+                                    Log.e("WeightInputScreen", "Error updating weight: $errorMessage")
+                                }
+                            )
+                            Log.d("WeightInputScreen", "Weight updated to: $newValue")
+                        }
                     },
                     singleLine = true,
                     label = { Text("Enter your weight") },
@@ -122,7 +135,17 @@ fun WeightInputScreen(
             // Next Button
             Button(
                 onClick = {
-                    onWeightSubmitted(weight) // Kirim berat badan ke callback
+                    // Pastikan data disimpan di ViewModel
+                    userInputViewModel.updateWeight(weight.toIntOrNull() ?: 0,
+                        onSuccess = {
+                            Log.d("WeightInputScreen", "Weight successfully updated on Next button")
+                        },
+                        onError = { errorMessage ->
+                            Log.e("WeightInputScreen", "Error on Next button: $errorMessage")
+                        }
+                    )
+                    // Navigasi ke halaman berikutnya setelah data disimpan di ViewModel
+                    navController.navigate("height_input")
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -151,12 +174,11 @@ fun WeightInputScreen(
     }
 }
 
-// Preview Section
-@Preview(showBackground = true)
-@Composable
-fun WeightInputScreenPreview() {
-    NutriSenseTheme {
-        WeightInputScreen(onWeightSubmitted = {})
-    }
-}
+
+
+
+
+
+
+
 

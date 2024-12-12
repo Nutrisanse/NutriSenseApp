@@ -1,6 +1,8 @@
 package com.example.nutrisense.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -14,7 +16,7 @@ import com.example.nutrisense.ui.input.weight.WeightInputScreen
 import com.example.nutrisense.ui.profile.ProfileScreen
 import com.example.nutrisense.ui.input.login.LoginRoute
 import com.example.nutrisense.ui.input.register.RegisterRoute
-
+import com.example.nutrisense.ui.input.UserInputViewModel
 
 @Composable
 fun NutriSenseApp(onCameraLaunch: () -> Unit, showToast: (String) -> Unit) {
@@ -32,43 +34,51 @@ fun NutriSenseApp(onCameraLaunch: () -> Unit, showToast: (String) -> Unit) {
             LoginRoute(navController = navController)
         }
         composable("sex_selection") {
+            val navBackStackEntry = remember { navController.currentBackStackEntry }
+            val userInputViewModel: UserInputViewModel = hiltViewModel(navBackStackEntry!!)
             SexSelectionScreen(
-                onSexSelected = { sex ->
+                viewModel = userInputViewModel,
+                onSexSelected = {
                     navController.navigate("weight_input")
                 }
             )
         }
         composable("register") {
-            RegisterRoute(navController = navController)  // Menambahkan NavController ke RegisterRoute
+            RegisterRoute(navController = navController)
         }
         composable("weight_input") {
+            val navBackStackEntry = remember { navController.currentBackStackEntry }
+            val userInputViewModel: UserInputViewModel = hiltViewModel(navBackStackEntry!!)
             WeightInputScreen(
-                onWeightSubmitted = { weight ->
-                    navController.navigate("height_input")
-                }
+                userInputViewModel = userInputViewModel,
+                navController = navController
             )
         }
         composable("height_input") {
+            val navBackStackEntry = remember { navController.currentBackStackEntry }
+            val userInputViewModel: UserInputViewModel = hiltViewModel(navBackStackEntry!!)
             HeightInputScreen(
-                onHeightSubmitted = { height ->
-                    navController.navigate("age_input")
-                }
+                userInputViewModel = userInputViewModel,
+                navController = navController
             )
         }
         composable("age_input") {
+            val navBackStackEntry = remember { navController.currentBackStackEntry }
+            val userInputViewModel: UserInputViewModel = hiltViewModel(navBackStackEntry!!)
             AgeInputScreen(
-                onNextClicked = { age ->
-                    navController.navigate("health_input")
-                }
+                userInputViewModel = userInputViewModel,
+                navController = navController
             )
         }
         composable("health_input") {
+            val navBackStackEntry = remember { navController.currentBackStackEntry }
+            val userInputViewModel: UserInputViewModel = hiltViewModel(navBackStackEntry!!)
             HealthInputScreen(
-                onNextClicked = { healthData ->
-                    navController.navigate("home")
-                }
+                navController = navController,
+                userInputViewModel = userInputViewModel,
             )
         }
+
         composable("home") {
             HomeScreen(
                 navController = navController,
@@ -85,5 +95,7 @@ fun NutriSenseApp(onCameraLaunch: () -> Unit, showToast: (String) -> Unit) {
         }
     }
 }
+
+
 
 

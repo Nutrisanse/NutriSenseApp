@@ -25,8 +25,7 @@ import com.example.nutrisense.ui.components.AppButton
 import com.example.nutrisense.ui.components.InputPassword
 import com.example.nutrisense.ui.components.InputTextField
 import com.example.nutrisense.ui.theme.NutriSenseTheme
-import com.example.nutrisense.utils.navigateToHome
-import com.example.nutrisense.utils.navigateToRegister
+
 
 @Composable
 internal fun LoginRoute(

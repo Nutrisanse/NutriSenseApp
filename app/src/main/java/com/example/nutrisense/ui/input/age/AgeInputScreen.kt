@@ -1,5 +1,6 @@
 package com.example.nutrisense.ui.input.age
 
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,19 +13,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.airbnb.lottie.compose.*
 import com.example.nutrisense.R
-import com.example.nutrisense.ui.theme.NutriSenseTheme
+import com.example.nutrisense.ui.input.UserInputViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 
 @Composable
 fun AgeInputScreen(
-    viewModel: AgeInputViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
-    onNextClicked: (Int) -> Unit
+    userInputViewModel: UserInputViewModel = viewModel(),
+    navController: NavController
 ) {
-    val selectedAge by viewModel.selectedAge.collectAsState() // Observe age state
+    // Ambil usia yang dipilih dari ViewModel
+    val selectedAge = userInputViewModel.userData.collectAsState().value.age ?: 25
 
     // Load Lottie animation
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.calendar))
@@ -116,7 +119,12 @@ fun AgeInputScreen(
                 val visibleItems = listState.layoutInfo.visibleItemsInfo
                 if (visibleItems.size >= 3) {
                     val centerItem = visibleItems[1]
-                    viewModel.updateSelectedAge(numberList[centerItem.index])
+                    userInputViewModel.updateAge(numberList[centerItem.index], onSuccess = {
+                        // You can handle success logic here (if needed)
+                    }, onError = { error ->
+                        // You can handle error logic here (e.g., show error message)
+                        println("Error updating age: $error")
+                    })
                 }
             }
 
@@ -151,7 +159,15 @@ fun AgeInputScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Button(
-                onClick = { onNextClicked(selectedAge) },
+                onClick = {
+                    // Update selected age and navigate to the next screen
+                    userInputViewModel.updateAge(selectedAge, onSuccess = {
+
+                    }, onError = { error ->
+                        println("Error saving age: $error") // Handle error here if needed
+                    })
+                    navController.navigate("health_input") // Navigate to the next screen on success
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -179,11 +195,3 @@ fun AgeInputScreen(
     }
 }
 
-
-@Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun AgeInputScreenPreview() {
-    NutriSenseTheme {
-        AgeInputScreen(onNextClicked = {})
-    }
-}

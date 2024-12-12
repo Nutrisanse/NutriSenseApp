@@ -4,10 +4,8 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
 import com.auth0.android.jwt.JWT
 import com.example.nutrisense.data.repositories.UserRepository
-import com.example.nutrisense.data.resource.response.error.LoginError
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -29,10 +27,9 @@ class LoginViewModel @Inject constructor(
     }
 
     val errorMessages = mutableStateOf<String?>(null)
-
-    var passwordVisible = mutableStateOf(false)
-    var loading = mutableStateOf(false)
-    var successMessage = mutableStateOf<String?>(null)
+    val passwordVisible = mutableStateOf(false)
+    val loading = mutableStateOf(false)
+    val successMessage = mutableStateOf<String?>(null)
 
     fun login() {
         viewModelScope.launch {
@@ -43,36 +40,34 @@ class LoginViewModel @Inject constructor(
                     loginUiInfo.value.password
                 )
 
-                val accessToken = response.accessToken // Memastikan ada access token
-                if (accessToken != null) {
-                    val jwt = JWT(accessToken)
-                    val nameClaim = jwt.getClaim("name").asString()
-                    userRepository.saveAccessToken(accessToken, nameClaim ?: "Unknown")
-                } else {
-                    errorMessages.value = "Access token is null"
-                }
+                Log.d("LoginViewModel", "Response: $response")
 
-                withContext(Dispatchers.Main) {
-                    successMessage.value = "Login Success"
+                val token = response.token // Mengakses token dari respons
+                if (token != null) {
+                    val jwt = JWT(token)
+                    val usernameClaim = jwt.getClaim("username").asString()
+                    userRepository.saveAccessToken(token, usernameClaim ?: "Unknown")
+                    withContext(Dispatchers.Main) {
+                        successMessage.value = "Login Success"
+                        Log.d("LoginViewModel", "Token: $token")
+                    }
+                } else {
+                    errorMessages.value = "Token is null"
+                    Log.e("LoginViewModel", "Token is null")
+                    errorMessages.value = "Token tidak ditemukan"
                 }
             } catch (e: HttpException) {
-                if (e.code() == 401) {
-                    errorMessages.value = "Email atau password salah"
-                    return@launch
-                }
-
-                val jsonInString = e.response()?.errorBody()?.string()
-                val errorBody = Gson().fromJson(jsonInString, LoginError::class.java)
-                errorMessages.value = errorBody.detail?.get(0)?.msg
+                val jsonError = e.response()?.errorBody()?.string()
+                Log.e("LoginViewModel", "HttpException: $jsonError")
+                errorMessages.value = "Email atau password salah"
             } catch (e: Exception) {
-                errorMessages.value = "An error occurred"
-                Log.d("LoginViewModel", "login: ${e.message}")
+                Log.e("LoginViewModel", "Exception: ${e.message}")
+                errorMessages.value = "An unexpected error occurred"
             } finally {
                 loading.value = false
             }
         }
     }
-
 
     fun onEmailChanged(email: String) {
         loginUiInfo.value = loginUiInfo.value.copy(email = email)

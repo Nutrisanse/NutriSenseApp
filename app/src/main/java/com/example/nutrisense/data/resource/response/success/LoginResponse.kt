@@ -4,12 +4,26 @@ import com.google.gson.annotations.SerializedName
 
 data class LoginResponse(
 
-    @field:SerializedName("access_token")
-    val accessToken: String,
+    @field:SerializedName("status")
+    val status: String,
 
     @field:SerializedName("message")
     val message: String,
 
-    @field:SerializedName("token_type")
-    val tokenType: String
+    @field:SerializedName("token")
+    val token: String?, // Gunakan nullable karena token bisa saja null
+
+    @field:SerializedName("userId")
+    val userId: String?, // Tambahkan userId jika diperlukan
+
+    @field:SerializedName("data")
+    val data: UserData? // Data tambahan seperti email dan username
+)
+
+data class UserData(
+    @field:SerializedName("email")
+    val email: String,
+
+    @field:SerializedName("username")
+    val username: String
 )

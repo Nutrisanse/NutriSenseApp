@@ -11,30 +11,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.airbnb.lottie.compose.*
 import com.example.nutrisense.R
-import com.example.nutrisense.ui.input.HealthInputViewModel
+import com.example.nutrisense.ui.input.UserInputViewModel
 import com.example.nutrisense.ui.theme.NutriSenseTheme
 
-
-
-
 @OptIn(ExperimentalMaterial3Api::class)
-
 @Composable
 fun HealthInputScreen(
-    viewModel: HealthInputViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
-    onNextClicked: (String) -> Unit
+    navController: NavController, // Menambahkan NavController sebagai parameter
+    userInputViewModel: UserInputViewModel = viewModel() // Mendapatkan ViewModel
 ) {
-    val bloodPressure by viewModel.bloodPressure.collectAsState()
-    val cholesterol by viewModel.cholesterol.collectAsState()
-    val sugarLevel by viewModel.sugarLevel.collectAsState()
-    val allergies by viewModel.allergies.collectAsState()
+    // Local state for each input field
+    var bloodPressure by remember { mutableStateOf("") }
+    var cholesterol by remember { mutableStateOf("") }
+    var sugarLevel by remember { mutableStateOf("") }
+    var allergies by remember { mutableStateOf("") }
 
-    // Load Lottie animation for health
+    // Lottie animation setup
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.health))
     val progress by animateLottieCompositionAsState(
         composition = composition,
@@ -84,7 +82,11 @@ fun HealthInputScreen(
 
                         OutlinedTextField(
                             value = bloodPressure,
-                            onValueChange = { viewModel.updateBloodPressure(it) },
+                            onValueChange = {
+                                if (it.all { char -> char.isDigit() }) { // Only allow digits
+                                    bloodPressure = it
+                                }
+                            },
                             label = { Text("Blood Pressure") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
@@ -105,7 +107,11 @@ fun HealthInputScreen(
 
                         OutlinedTextField(
                             value = cholesterol,
-                            onValueChange = { viewModel.updateCholesterol(it) },
+                            onValueChange = {
+                                if (it.all { char -> char.isDigit() }) { // Only allow digits
+                                    cholesterol = it
+                                }
+                            },
                             label = { Text("Cholesterol") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
@@ -126,7 +132,11 @@ fun HealthInputScreen(
 
                         OutlinedTextField(
                             value = sugarLevel,
-                            onValueChange = { viewModel.updateSugarLevel(it) },
+                            onValueChange = {
+                                if (it.all { char -> char.isDigit() }) { // Only allow digits
+                                    sugarLevel = it
+                                }
+                            },
                             label = { Text("Sugar Level") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
@@ -147,7 +157,7 @@ fun HealthInputScreen(
 
                         OutlinedTextField(
                             value = allergies,
-                            onValueChange = { viewModel.updateAllergies(it) },
+                            onValueChange = { allergies = it },
                             label = { Text("Allergies") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
@@ -155,13 +165,6 @@ fun HealthInputScreen(
                                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                                 unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                             )
-                        )
-                        Text(
-                            text = "You can fill it later if you're not sure about some details.",
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                            modifier = Modifier.padding(top = 8.dp)
                         )
                     }
 
@@ -173,7 +176,28 @@ fun HealthInputScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Button(
-                            onClick = { onNextClicked(viewModel.getHealthData()) },
+                            onClick = {
+                                // Safely parse input strings to integers
+                                val bp = bloodPressure.toIntOrNull()
+                                val chol = cholesterol.toIntOrNull()
+                                val sugar = sugarLevel.toIntOrNull()
+
+                                // Update health data in ViewModel and send to server
+                                userInputViewModel.updateHealthData(
+                                    blood_pressure = bp,
+                                    cholesterol = chol,
+                                    blood_sugar = sugar,
+                                    allergies = allergies,
+                                    onSuccess = {
+                                        // Navigate to next screen (home) on success
+                                        navController.navigate("home")
+                                    },
+                                    onError = { error ->
+                                        // Handle error (e.g., show error message)
+                                        println("Error saving health data: $error")
+                                    }
+                                )
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(50.dp),
@@ -205,10 +229,3 @@ fun HealthInputScreen(
 }
 
 
-@Preview(showBackground = true)
-@Composable
-fun HealthInputScreenPreview() {
-    NutriSenseTheme {
-        HealthInputScreen(onNextClicked = {})
-    }
-}

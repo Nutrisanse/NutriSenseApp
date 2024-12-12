@@ -1,5 +1,6 @@
 package com.example.nutrisense.ui.input.height
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.airbnb.lottie.compose.LottieAnimation
@@ -21,22 +21,23 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.nutrisense.R
-import com.example.nutrisense.ui.input.HeightInputViewModel
-import com.example.nutrisense.ui.theme.NutriSenseTheme
+import com.example.nutrisense.ui.input.UserInputViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.compose.foundation.lazy.items // Pastikan untuk mengimpor items
 
 @Composable
 fun HeightInputScreen(
-    onHeightSubmitted: (String) -> Unit,
-    viewModel: HeightInputViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    userInputViewModel: UserInputViewModel = viewModel(),
+    navController: NavController
 ) {
-    // Observe selectedHeight from ViewModel
-    val selectedHeight by viewModel.selectedHeight.collectAsState()
+    val userData by userInputViewModel.userData.collectAsState()
+    val selectedHeight = userData.height ?: 163
 
-    // Load Lottie animation
-    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.height)) // Use height.json file
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.height))
     val progress by animateLottieCompositionAsState(
         composition = composition,
-        iterations = LottieConstants.IterateForever // Loop indefinitely
+        iterations = LottieConstants.IterateForever
     )
 
     val numberList = (100..250).toList()
@@ -50,7 +51,6 @@ fun HeightInputScreen(
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Top Section
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -59,7 +59,6 @@ fun HeightInputScreen(
         ) {
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Title
             Text(
                 text = "How tall are you?",
                 textAlign = TextAlign.Center,
@@ -71,11 +70,7 @@ fun HeightInputScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Lottie Animation
-            Box(
-                modifier = Modifier
-                    .size(200.dp)
-            ) {
+            Box(modifier = Modifier.size(200.dp)) {
                 LottieAnimation(
                     composition = composition,
                     progress = progress
@@ -84,7 +79,6 @@ fun HeightInputScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Rolling Picker
             LazyColumn(
                 state = listState,
                 modifier = Modifier
@@ -93,8 +87,7 @@ fun HeightInputScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                items(numberList.size) { index ->
-                    val height = numberList[index]
+                items(numberList) { height ->
                     Text(
                         text = "$height",
                         style = TextStyle(
@@ -113,19 +106,26 @@ fun HeightInputScreen(
                 }
             }
 
-            // Update selected height based on scrolling
             LaunchedEffect(listState.firstVisibleItemIndex, listState.layoutInfo.visibleItemsInfo) {
                 val visibleItems = listState.layoutInfo.visibleItemsInfo
                 if (visibleItems.isNotEmpty()) {
                     val middleIndex = visibleItems.size / 2
                     val centerItem = visibleItems[middleIndex]
-                    viewModel.updateHeight(numberList[centerItem.index])
+
+                    // Periksa apakah index ada dalam daftar
+                    if (centerItem.index in numberList.indices) {
+                        val newHeight = numberList[centerItem.index]
+                        userInputViewModel.updateHeight(newHeight, onSuccess = {
+                            // Handle success, if any
+                        }, onError = { error ->
+                            Log.e("HeightInputScreen", "Error updating height: $error")
+                        })
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Display selected height
             Text(
                 text = "$selectedHeight cm",
                 style = MaterialTheme.typography.headlineMedium.copy(
@@ -136,7 +136,6 @@ fun HeightInputScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // "Why we ask" text
             Text(
                 text = "Why we ask",
                 style = MaterialTheme.typography.bodySmall.copy(
@@ -145,16 +144,21 @@ fun HeightInputScreen(
             )
         }
 
-        // Bottom Section
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Next Button
             Button(
-                onClick = { onHeightSubmitted("$selectedHeight") },
+                onClick = {
+                    userInputViewModel.updateHeight(selectedHeight, onSuccess = {
+
+                    }, onError = { exception ->
+                        Log.e("HeightInputScreen", "Error updating height: ${exception.message}")  // Akses message dari Exception
+                    })
+                    navController.navigate("age_input")
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -169,9 +173,9 @@ fun HeightInputScreen(
                 )
             }
 
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Footer Text
             Text(
                 text = "By continuing, you agree to NutriSense\nPrivacy Policy and Terms of Use",
                 textAlign = TextAlign.Center,
@@ -181,14 +185,5 @@ fun HeightInputScreen(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
         }
-    }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun HeightInputScreenPreview() {
-    NutriSenseTheme {
-        HeightInputScreen(onHeightSubmitted = { /* Handle height submission */ })
     }
 }
